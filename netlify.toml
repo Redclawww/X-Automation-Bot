@@ -1,0 +1,12 @@
+
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  included_files = ["netlify/functions/**"]
+  external_node_modules = ["twitter-api-v2", "groq-sdk"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
