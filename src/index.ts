@@ -57,18 +57,13 @@ const job = cron.schedule("0 0 */2 * * *", () => {
   }
 });
 
-function performTask() {
-  console.log("Performing scheduled task...");
-  // Add your specific task implementation here
-}
 
-// Reset execution count at midnight
 cron.schedule("0 0 0 * * *", () => {
   console.log("Resetting daily execution count at midnight");
   executionCount = 0;
 });
 
-// Calculate and display the next 10 execution times
+
 function displayNextExecutions() {
   const now = new Date();
   console.log("Next 10 execution times:");
