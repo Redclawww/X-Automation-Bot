@@ -39,7 +39,7 @@ const job = cron.schedule("0 0 */2 * * *", () => {
   const now = new Date();
   executionCount++;
 
-  console.log(`Execution #${executionCount} at ${now.toLocaleString()}`);
+  console.log(`Execution # ${executionCount} at ${now.toLocaleString()}`);
 
   try {
     // Your business logic goes here
