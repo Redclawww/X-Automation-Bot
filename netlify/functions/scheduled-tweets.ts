@@ -1,8 +1,7 @@
-// api/cron.ts
+// netlify/functions/scheduled-tweets.ts
+import { Handler, schedule } from "@netlify/functions";
 import { TwitterApi } from "twitter-api-v2";
 import Groq from "groq-sdk";
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
 // Configure API clients
 const groq = new Groq({ 
@@ -31,52 +30,36 @@ async function getGroqChatCompletion() {
   return result.choices[0].message.content;
 }
 
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(request: NextRequest) {
+const AutomationBot: Handler = async (event, context) => {
   try {
-    // Get the Authorization header
-    const authHeader = request.headers.get('authorization');
-    
-    // Verify the cron job secret (optional but recommended)
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
     // Get tweet content from Groq
     const tweetContent = await getGroqChatCompletion();
     
+    // Post to Twitter
     if (tweetContent) {
-      // Post to Twitter
       await twitterClient.v2.tweet(tweetContent);
     } else {
-      throw new Error('Failed to generate tweet content');
+      throw new Error("Tweet content is null");
     }
 
-    // Return success response
-    return new NextResponse(JSON.stringify({
-      success: true,
-      message: 'Tweet posted successfully!',
-      content: tweetContent,
-      timestamp: new Date().toISOString()
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "Tweet posted successfully!",
+        content: tweetContent,
+        timestamp: new Date().toISOString()
+      })
+    };
   } catch (error) {
     console.error('Error:', error);
-    return new NextResponse(JSON.stringify({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    };
   }
-}
+};
+
+// Schedule the function to run every 2 hours
+export const handler = schedule("0 */2 * * *", AutomationBot);
